@@ -3,18 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cottage Notion</title>
+  <title>Cottage Notion Workspace</title>
   
-  <!-- ตั้งค่าแอปสำหรับหน้าจอมือถือ (PWA) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CottageNotes">
+  <meta name="apple-mobile-web-app-title" content="CottageNotion">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/869/869869.png">
 
-  <!-- Tailwind CSS & Font Mitr (ฟอนต์ไทยน่ารักอ่านสบายตา) -->
+  <!-- Tailwind CSS & ฟอนต์ Mitr -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <script>
@@ -35,62 +32,61 @@
 
   <style>
     body { font-family: 'Mitr', sans-serif; background-color: #fafafa; }
-    /* สไตล์ Editor แบบ Notion */
     [contenteditable]:empty:before {
       content: attr(data-placeholder);
       color: #5b5a58;
       opacity: 0.4;
-      cursor: text;
     }
-    .notion-editor:focus { outline: none; }
-    .notion-editor h1 { font-size: 1.8rem; font-weight: 600; color: #663366; margin: 1.2rem 0 0.5rem; }
-    .notion-editor h2 { font-size: 1.4rem; font-weight: 500; color: #1c0e07; margin: 1rem 0 0.4rem; }
-    .notion-editor p { margin: 0.4rem 0; line-height: 1.7; color: #1c0e07; }
-    .notion-editor ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
-    .notion-editor blockquote { 
-      border-left: 3px solid #ef9dc1; 
-      padding-left: 1rem; 
-      margin: 0.8rem 0; 
-      color: #5b5a58; 
-      font-style: italic; 
-    }
+    .notion-block:focus { outline: none; }
   </style>
 </head>
 <body class="h-screen flex overflow-hidden text-cottageBark select-none">
 
   <!-- แถบด้านข้าง (Sidebar) -->
-  <aside id="sidebar" class="w-72 bg-white/70 backdrop-blur-md border-r border-cottageSlate/15 flex flex-col transition-all duration-300 z-30 absolute md:relative h-full -translate-x-full md:translate-x-0">
-    <!-- ส่วนหัว Sidebar -->
+  <aside id="sidebar" class="w-80 bg-white/85 backdrop-blur-md border-r border-cottageSlate/15 flex flex-col transition-all duration-300 z-30 absolute md:relative h-full -translate-x-full md:translate-x-0">
+    <!-- Header Sidebar -->
     <div class="p-4 border-b border-cottageSlate/10 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <span class="text-xl">🧺</span>
-        <span class="font-semibold text-cottagePlum text-sm tracking-wide">Cottage Workspace</span>
+        <span class="text-2xl">🧺</span>
+        <div>
+          <h2 class="font-semibold text-cottagePlum text-sm leading-tight">Cottage Workspace</h2>
+          <span class="text-[10px] text-cottagePink font-medium">Notebooks & Blocks</span>
+        </div>
       </div>
-      <button onclick="toggleSidebar()" class="md:hidden text-cottageSlate text-xs p-1">✕</button>
+      <button onclick="toggleSidebar()" class="md:hidden text-cottageSlate p-1 text-sm">✕</button>
     </div>
 
-    <!-- ปุ่มสร้างหน้าใหม่ -->
+    <!-- สลับโหมด เอกสาร / ฐานข้อมูล -->
     <div class="p-3">
-      <button onclick="createNewPage()" class="w-full bg-cottagePink/20 hover:bg-cottagePink/30 text-cottagePlum font-medium text-xs py-2.5 px-4 rounded-xl flex items-center gap-2 transition-all">
-        <span class="text-base font-bold text-cottagePlum">+</span> สร้างหน้าเอกสารใหม่
+      <div class="grid grid-cols-2 gap-1 bg-cottageSlate/10 p-1 rounded-xl text-xs font-medium text-center">
+        <button id="tabPagesBtn" onclick="switchMainView('pages')" class="py-1.5 rounded-lg bg-white text-cottagePlum shadow-sm">📚 สมุดโน้ต</button>
+        <button id="tabDbBtn" onclick="switchMainView('database')" class="py-1.5 rounded-lg text-cottageSlate hover:text-cottageBark">📊 ฐานข้อมูล</button>
+      </div>
+    </div>
+
+    <!-- ปุ่มสร้างโฟลเดอร์ & หน้าเอกสาร -->
+    <div class="px-3 grid grid-cols-2 gap-2 mb-2" id="actionButtons">
+      <button onclick="createNewFolder()" class="bg-stone-100 hover:bg-stone-200 text-cottageBark font-medium text-xs py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition-all">
+        📁 สร้างโฟลเดอร์
+      </button>
+      <button onclick="createNewPage(null)" class="bg-cottagePink/25 hover:bg-cottagePink/35 text-cottagePlum font-medium text-xs py-2 px-2 rounded-xl flex items-center justify-center gap-1 transition-all">
+        + สร้างหน้าใหม่
       </button>
     </div>
 
-    <!-- รายชื่อหน้าเอกสาร (Page List) -->
-    <div class="flex-1 overflow-y-auto px-3 space-y-1" id="pagesList">
-      <!-- หน้าต่างๆ จะมาแสดงตรงนี้ -->
-    </div>
+    <!-- รายการโฟลเดอร์และหน้าเอกสาร (Folder & Page Tree) -->
+    <div class="flex-1 overflow-y-auto px-3 space-y-2" id="sidebarTree"></div>
 
-    <!-- เมนูสำรองข้อมูลด้านล่าง (Backup & Restore) -->
-    <div class="p-3 border-t border-cottageSlate/10 text-xs text-cottageSlate bg-stone-50/50 space-y-2">
-      <div class="font-medium text-cottageBark/70 mb-1 flex items-center gap-1">💾 สำรองข้อมูล (Pro)</div>
-      <div class="flex gap-2">
-        <button onclick="exportData()" class="flex-1 bg-white border border-cottageSlate/20 hover:border-cottagePlum p-1.5 rounded-lg text-center transition-colors">
-          ดาวน์โหลดข้อมูล
-        </button>
-        <label class="flex-1 bg-white border border-cottageSlate/20 hover:border-cottagePlum p-1.5 rounded-lg text-center cursor-pointer transition-colors">
+    <!-- สำรองข้อมูล -->
+    <div class="p-3 border-t border-cottageSlate/10 text-xs bg-stone-50/50 space-y-2">
+      <div class="flex justify-between items-center text-[11px] text-cottageSlate font-semibold">
+        <span>💾 สำรองข้อมูล (Pro)</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="exportData()" class="bg-white border border-cottageSlate/20 hover:border-cottagePlum p-1.5 rounded-lg text-center font-medium">ดาวน์โหลด</button>
+        <label class="bg-white border border-cottageSlate/20 hover:border-cottagePlum p-1.5 rounded-lg text-center font-medium cursor-pointer">
           กู้คืนข้อมูล
-          <input type="file" id="importInput" onchange="importData(event)" class="hidden" accept=".json">
+          <input type="file" onchange="importData(event)" class="hidden" accept=".json">
         </label>
       </div>
     </div>
@@ -99,104 +95,315 @@
   <!-- พื้นที่ทำงานหลัก (Workspace Canvas) -->
   <main class="flex-1 flex flex-col h-full overflow-hidden bg-cottagePaper relative">
     
-    <!-- แถบเครื่องมือบนสุด (Top Navigation Bar) -->
-    <header class="h-12 border-b border-cottageSlate/10 flex items-center justify-between px-4 bg-white/40 backdrop-blur-sm z-10">
-      <div class="flex items-center gap-3">
+    <!-- Navigation Top Bar -->
+    <header class="h-12 border-b border-cottageSlate/10 flex items-center justify-between px-4 bg-white/50 backdrop-blur-sm z-10">
+      <div class="flex items-center gap-2">
         <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-black/5 text-cottageSlate">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <span id="breadcrumbTitle" class="text-xs text-cottageSlate font-light truncate max-w-[200px]">ยินดีต้อนรับ</span>
+        <span id="navTitle" class="text-xs text-cottageSlate font-light truncate max-w-[200px]">ยินดีต้อนรับ</span>
       </div>
 
-      <!-- แถบฟอร์แมตตัวหนังสือ (Toolbar สไตล์ Notion) -->
-      <div class="flex items-center gap-1 text-xs text-cottageBark">
-        <button onclick="formatDoc('formatBlock', '<h1>')" class="px-2 py-1 hover:bg-cottagePink/20 rounded font-bold" title="หัวข้อใหญ่">H1</button>
-        <button onclick="formatDoc('formatBlock', '<h2>')" class="px-2 py-1 hover:bg-cottagePink/20 rounded font-bold" title="หัวข้อย่อย">H2</button>
-        <button onclick="formatDoc('bold')" class="px-2 py-1 hover:bg-cottagePink/20 rounded font-bold" title="ตัวหนา">B</button>
-        <button onclick="formatDoc('insertUnorderedList')" class="px-2 py-1 hover:bg-cottagePink/20 rounded" title="รายการจุด">• รายการ</button>
-        <button onclick="insertTodo()" class="px-2 py-1 hover:bg-cottagePink/20 rounded" title="To-do list">☑ สิ่งที่ต้องทำ</button>
-        <button onclick="deleteCurrentPage()" class="px-2 py-1 text-red-500 hover:bg-red-50 rounded ml-2" title="ลบหน้านี้">ลบ</button>
+      <!-- เครื่องมือบล็อก (Blocks Toolbar) -->
+      <div id="editorToolbar" class="flex items-center gap-1 text-xs">
+        <button onclick="insertBlock('h1')" class="px-2 py-1 hover:bg-cottagePink/20 rounded font-bold" title="หัวข้อใหญ่">H1</button>
+        <button onclick="insertBlock('todo')" class="px-2 py-1 hover:bg-cottagePink/20 rounded" title="สิ่งที่ต้องทำ">☑ To-do</button>
+        <button onclick="insertBlock('callout')" class="px-2 py-1 hover:bg-cottagePink/20 rounded" title="กล่องเน้นข้อความ">💡 Callout</button>
+        <button onclick="insertBlock('toggle')" class="px-2 py-1 hover:bg-cottagePink/20 rounded" title="กล่องย่อขยาย">▶ Toggle</button>
+        <button onclick="deleteCurrentPage()" class="px-2 py-1 text-red-400 hover:bg-red-50 rounded ml-2">ลบหน้านี้</button>
+      </div>
+
+      <!-- สลับมุมมอง Database -->
+      <div id="databaseToolbar" class="hidden flex items-center gap-1 text-xs">
+        <button onclick="setDbView('table')" id="btnViewTable" class="px-3 py-1 rounded-lg bg-cottagePlum text-white font-medium">📋 Table</button>
+        <button onclick="setDbView('board')" id="btnViewBoard" class="px-3 py-1 rounded-lg bg-white border border-cottageSlate/20 text-cottageSlate font-medium">📌 Kanban Board</button>
       </div>
     </header>
 
-    <!-- พื้นที่เขียนหน้ากระดาษ (Infinite Document) -->
-    <div class="flex-1 overflow-y-auto select-text" id="documentArea">
-      <!-- ภาพปก Cottagecore Banner -->
-      <div class="h-44 w-full bg-cover bg-center relative" style="background-image: url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1200&auto=format&fit=crop');">
-        <div class="absolute inset-0 bg-cottagePlum/10 backdrop-blur-[1px]"></div>
+    <!-- พื้นที่หน้าเอกสาร (Page View Area) -->
+    <div id="pageViewArea" class="flex-1 overflow-y-auto select-text">
+      
+      <!-- ส่วนภาพปก (Cover Area) -->
+      <div id="pageCover" class="h-48 w-full bg-cover bg-center relative group" style="background-image: url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1200&auto=format&fit=crop');">
+        <div class="absolute inset-0 bg-cottagePlum/10"></div>
+        
+        <!-- ปุ่มเปลี่ยนภาพปก (แสดงเมื่อเอาเมาส์ชี้ หรือกดบนจอมือถือ) -->
+        <label class="absolute right-4 bottom-4 bg-white/90 hover:bg-white text-cottageBark text-xs px-3 py-1.5 rounded-xl shadow-md cursor-pointer backdrop-blur-sm transition-all border border-cottageSlate/15 flex items-center gap-1.5">
+          <span>🖼️ เปลี่ยนภาพปก</span>
+          <input type="file" id="coverInput" accept="image/*" class="hidden" onchange="uploadCoverImage(event)">
+        </label>
       </div>
 
       <!-- เนื้อหาภายในหน้า -->
-      <div class="max-w-3xl mx-auto px-8 -mt-8 relative pb-32">
-        <!-- ไอคอนประจำหน้าเอกสาร -->
-        <button onclick="changePageIcon()" id="pageIcon" class="text-5xl bg-white p-2 rounded-2xl shadow-sm border border-cottageSlate/10 hover:scale-105 transition-transform mb-4 inline-block">
-          🌸
-        </button>
+      <div class="max-w-3xl mx-auto px-8 -mt-10 relative pb-32">
+        
+        <!-- ไอคอนประจำหน้า (กดเปลี่ยนเป็นภาพถ่าย หรืออิโมจิได้) -->
+        <div class="relative inline-block group mb-3">
+          <div id="pageIconBox" class="w-16 h-16 bg-white rounded-2xl shadow-md border border-cottageSlate/15 flex items-center justify-center overflow-hidden cursor-pointer">
+            <!-- ไอคอนจะเรนเดอร์ตรงนี้ (อิโมจิ หรือรูปภาพ) -->
+          </div>
 
-        <!-- ชื่อหน้าเอกสาร (Title) -->
-        <input id="pageTitle" type="text" placeholder="ไม่มีชื่อหน้า..." 
-               class="w-full text-3xl md:text-4xl font-semibold bg-transparent outline-none text-cottageBark placeholder-cottageSlate/30 mb-6"
-               oninput="onTitleChange()">
+          <!-- เมนูเลือกอัปโหลดรูปไอคอน หรือเลือกอิโมจิ -->
+          <div class="absolute -bottom-2 -right-2 flex gap-1">
+            <label title="อัปโหลดภาพไอคอน" class="bg-white p-1 rounded-full shadow border border-cottageSlate/20 cursor-pointer hover:scale-110 transition-transform">
+              <span class="text-xs">📸</span>
+              <input type="file" accept="image/*" class="hidden" onchange="uploadIconImage(event)">
+            </label>
+            <button onclick="cyclePageEmoji()" title="เปลี่ยนอิโมจิ" class="bg-white p-1 rounded-full shadow border border-cottageSlate/20 hover:scale-110 transition-transform text-xs">
+              🌸
+            </button>
+          </div>
+        </div>
 
-        <!-- ตัว Editor เนื้อหา (ยาวได้ไม่จำกัด) -->
-        <div id="pageContent" contenteditable="true" 
-             data-placeholder="กดพิมพ์ข้อความ หรือเริ่มจดความคิดของคุณตรงนี้..." 
-             class="notion-editor min-h-[500px] outline-none text-sm md:text-base leading-relaxed"
-             oninput="autoSaveContent()">
+        <!-- ชื่อหน้าเอกสาร -->
+        <input id="pageTitleInput" type="text" placeholder="ไม่มีชื่อหน้า..." 
+               class="w-full text-3xl font-semibold bg-transparent outline-none text-cottageBark placeholder-cottageSlate/30 mb-6"
+               oninput="onPageTitleChange()">
+
+        <!-- Block Canvas -->
+        <div id="blocksContainer" class="space-y-3 min-h-[400px]"></div>
+      </div>
+    </div>
+
+    <!-- พื้นที่ฐานข้อมูล (Database Engine) -->
+    <div id="databaseViewArea" class="hidden flex-1 overflow-y-auto p-6 select-text">
+      <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-cottagePlum">ฐานข้อมูลโปรเจกต์ & งาน</h1>
+            <p class="text-xs text-cottageSlate mt-1">สลับมุมมองตารางและบอร์ดได้ในข้อมูลชุดเดียวกัน</p>
+          </div>
+          <button onclick="addNewDbRow()" class="bg-cottagePlum hover:bg-cottagePlum/90 text-white text-xs px-4 py-2 rounded-xl font-medium shadow-sm">+ เพิ่มรายการ</button>
+        </div>
+
+        <!-- Table View -->
+        <div id="dbTableView" class="bg-white rounded-2xl border border-cottageSlate/15 shadow-sm overflow-hidden">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-stone-50 border-b border-cottageSlate/10 text-cottageSlate font-semibold">
+              <tr>
+                <th class="p-3 w-1/2">ชื่องาน / รายการ</th>
+                <th class="p-3 w-1/4">สถานะ (Status)</th>
+                <th class="p-3 w-1/4">ความสำคัญ</th>
+                <th class="p-3 text-center">ลบ</th>
+              </tr>
+            </thead>
+            <tbody id="dbTableBody" class="divide-y divide-cottageSlate/10"></tbody>
+          </table>
+        </div>
+
+        <!-- Kanban Board View -->
+        <div id="dbBoardView" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-stone-100/70 p-4 rounded-2xl border border-cottageSlate/10">
+            <div class="flex items-center justify-between font-semibold text-xs text-cottageSlate mb-3">
+              <span>⭕ ยังไม่เริ่ม</span>
+              <span id="count-todo" class="bg-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+            </div>
+            <div id="board-todo" class="space-y-2.5 min-h-[150px]"></div>
+          </div>
+
+          <div class="bg-[#fcedf2]/60 p-4 rounded-2xl border border-cottagePink/30">
+            <div class="flex items-center justify-between font-semibold text-xs text-cottagePlum mb-3">
+              <span>⏳ กำลังทำ</span>
+              <span id="count-progress" class="bg-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+            </div>
+            <div id="board-progress" class="space-y-2.5 min-h-[150px]"></div>
+          </div>
+
+          <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200">
+            <div class="flex items-center justify-between font-semibold text-xs text-emerald-800 mb-3">
+              <span>✅ เสร็จแล้ว</span>
+              <span id="count-done" class="bg-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+            </div>
+            <div id="board-done" class="space-y-2.5 min-h-[150px]"></div>
+          </div>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- JavaScript ระบบ Workspace -->
   <script>
-    let pages = [];
+    // โครงสร้างข้อมูลระบบ
+    let folders = JSON.parse(localStorage.getItem('cottage_folders') || '[]');
+    let pages = JSON.parse(localStorage.getItem('cottage_notion_pages') || '[]');
+    let dbItems = JSON.parse(localStorage.getItem('cottage_notion_db') || '[]');
     let currentPageId = null;
+    let currentDbView = 'table';
+
+    const DEFAULT_COVER = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1200&auto=format&fit=crop';
 
     window.onload = function() {
-      loadPages();
+      initApp();
     };
+
+    function initApp() {
+      // สร้างโฟลเดอร์เริ่มต้น
+      if (folders.length === 0) {
+        folders = [
+          { id: 'f1', name: 'ความรู้และไอเดีย', emoji: '📚' },
+          { id: 'f2', name: 'ไดอารี่ประจำวัน', emoji: '🏡' }
+        ];
+        saveFolders();
+      }
+
+      // สร้างหน้าเริ่มต้น
+      if (pages.length === 0) {
+        pages.push({
+          id: Date.now().toString(),
+          folderId: 'f1',
+          iconType: 'emoji', // 'emoji' หรือ 'image'
+          iconVal: '🌿',
+          coverUrl: DEFAULT_COVER,
+          title: 'ยินดีต้อนรับสู่ Cottage Workspace',
+          blocks: [
+            { type: 'callout', content: 'ตอนนี้คุณสามารถสร้างโฟลเดอร์ และอัปโหลดภาพปก/ภาพไอคอนจากเครื่องตัวเองได้แล้วค่ะ! 🌸' },
+            { type: 'h1', content: 'ระบบโฟลเดอร์และภาพถ่าย' },
+            { type: 'todo', content: 'ลองกดปุ่ม "🖼️ เปลี่ยนภาพปก" ที่มุมขวาล่างของภาพปกดูสิ', checked: false },
+            { type: 'todo', content: 'ลองกดปุ่มกล้อง 📸 ใต้ไอคอนเพื่ออัปโหลดรูปตัวเอง', checked: false }
+          ]
+        });
+        savePages();
+      }
+
+      if (dbItems.length === 0) {
+        dbItems = [
+          { id: '1', title: 'แต่งหน้าร้านจัดสวน', status: 'In Progress', priority: 'สูง 🌸' },
+          { id: '2', title: 'จิบชายามบ่าย', status: 'To Do', priority: 'ปานกลาง ☕' }
+        ];
+        saveDb();
+      }
+
+      renderSidebarTree();
+      selectPage(pages[0].id);
+      renderDatabase();
+    }
 
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('-translate-x-full');
     }
 
-    function getStorage() {
-      return JSON.parse(localStorage.getItem('cottage_notion_pages') || '[]');
-    }
-
-    function saveStorage() {
-      localStorage.setItem('cottage_notion_pages', JSON.stringify(pages));
-    }
-
-    function loadPages() {
-      pages = getStorage();
-      if (pages.length === 0) {
-        // สร้างหน้าแรกเป็นตัวอย่างต้อนรับ
-        const welcomePage = {
-          id: Date.now().toString(),
-          icon: '📖',
-          title: 'ยินดีต้อนรับสู่ Cottage Workspace',
-          content: '<p>นี่คือพื้นที่บันทึกส่วนตัวของคุณสไตล์ Notion</p><ul><li>กดที่ปุ่ม <strong>+ สร้างหน้าเอกสารใหม่</strong> ด้านซ้าย</li><li>พิมพ์เนื้อหาได้ยาวไร้ขีดจำกัด</li><li>จัดตัวหนา หัวข้อ H1 H2 หรือเช็คลิสต์ได้อิสระ</li></ul>'
-        };
-        pages.push(welcomePage);
-        saveStorage();
+    function switchMainView(view) {
+      if (view === 'pages') {
+        document.getElementById('pageViewArea').classList.remove('hidden');
+        document.getElementById('databaseViewArea').classList.add('hidden');
+        document.getElementById('editorToolbar').classList.remove('hidden');
+        document.getElementById('databaseToolbar').classList.add('hidden');
+        document.getElementById('tabPagesBtn').className = 'py-1.5 rounded-lg bg-white text-cottagePlum shadow-sm';
+        document.getElementById('tabDbBtn').className = 'py-1.5 rounded-lg text-cottageSlate hover:text-cottageBark';
+        document.getElementById('actionButtons').classList.remove('hidden');
+      } else {
+        document.getElementById('pageViewArea').classList.add('hidden');
+        document.getElementById('databaseViewArea').classList.remove('hidden');
+        document.getElementById('editorToolbar').classList.add('hidden');
+        document.getElementById('databaseToolbar').classList.remove('hidden');
+        document.getElementById('tabDbBtn').className = 'py-1.5 rounded-lg bg-white text-cottagePlum shadow-sm';
+        document.getElementById('tabPagesBtn').className = 'py-1.5 rounded-lg text-cottageSlate hover:text-cottageBark';
+        document.getElementById('actionButtons').classList.add('hidden');
+        document.getElementById('navTitle').innerText = 'ฐานข้อมูลกลาง';
+        renderDatabase();
       }
-      renderPagesList();
-      selectPage(pages[0].id);
     }
 
-    function renderPagesList() {
-      const list = document.getElementById('pagesList');
-      list.innerHTML = pages.map(p => `
-        <div onclick="selectPage('${p.id}')" 
-             class="group flex items-center justify-between p-2 rounded-xl cursor-pointer text-xs transition-colors ${p.id === currentPageId ? 'bg-cottagePlum/10 font-medium text-cottagePlum' : 'hover:bg-black/5 text-cottageBark'}">
-          <div class="flex items-center gap-2 truncate">
-            <span>${p.icon || '📄'}</span>
-            <span class="truncate">${p.title || 'ไม่มีชื่อหน้า'}</span>
+    // --- จัดการโฟลเดอร์และหน้าเอกสาร (Folder Tree) ---
+    function saveFolders() { localStorage.setItem('cottage_folders', JSON.stringify(folders)); }
+    function savePages() { localStorage.setItem('cottage_notion_pages', JSON.stringify(pages)); }
+    function saveDb() { localStorage.setItem('cottage_notion_db', JSON.stringify(dbItems)); }
+
+    function createNewFolder() {
+      const name = prompt('ตั้งชื่อสมุด/โฟลเดอร์ใหม่:');
+      if (!name) return;
+      folders.push({
+        id: 'f_' + Date.now(),
+        name: name,
+        emoji: '📁'
+      });
+      saveFolders();
+      renderSidebarTree();
+    }
+
+    function deleteFolder(fId, e) {
+      e.stopPropagation();
+      if (confirm('ต้องการลบโฟลเดอร์นี้หรือไม่? (เอกสารข้างในจะถูกย้ายออกมาอยู่นอกโฟลเดอร์)')) {
+        folders = folders.filter(f => f.id !== fId);
+        pages.forEach(p => { if (p.folderId === fId) p.folderId = null; });
+        saveFolders();
+        savePages();
+        renderSidebarTree();
+      }
+    }
+
+    function createNewPage(folderId = null) {
+      const newPage = {
+        id: Date.now().toString(),
+        folderId: folderId,
+        iconType: 'emoji',
+        iconVal: '🌸',
+        coverUrl: DEFAULT_COVER,
+        title: '',
+        blocks: [{ type: 'text', content: '' }]
+      };
+      pages.unshift(newPage);
+      savePages();
+      renderSidebarTree();
+      selectPage(newPage.id);
+      document.getElementById('pageTitleInput').focus();
+    }
+
+    function renderSidebarTree() {
+      const tree = document.getElementById('sidebarTree');
+      let html = '';
+
+      // 1. เรนเดอร์โฟลเดอร์ต่างๆ
+      folders.forEach(f => {
+        const folderPages = pages.filter(p => p.folderId === f.id);
+        html += `
+          <div class="mb-1">
+            <div class="group flex items-center justify-between p-2 rounded-xl hover:bg-black/5 text-xs font-medium text-cottageBark cursor-pointer">
+              <div class="flex items-center gap-1.5 truncate">
+                <span>${f.emoji}</span>
+                <span class="truncate">${f.name}</span>
+                <span class="text-[10px] text-cottageSlate">(${folderPages.length})</span>
+              </div>
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="createNewPage('${f.id}')" title="สร้างหน้าในโฟลเดอร์นี้" class="text-cottagePlum font-bold px-1.5 hover:bg-stone-200 rounded">+</button>
+                <button onclick="deleteFolder('${f.id}', event)" title="ลบโฟลเดอร์" class="text-red-400 px-1 hover:text-red-600">✕</button>
+              </div>
+            </div>
+            <!-- รายการหน้าในโฟลเดอร์ -->
+            <div class="pl-4 space-y-0.5 mt-0.5 border-l border-cottageSlate/15 ml-3">
+              ${folderPages.map(p => renderPageItem(p)).join('')}
+            </div>
           </div>
+        `;
+      });
+
+      // 2. เรนเดอร์หน้าที่อยู่นอกโฟลเดอร์ (Uncategorized)
+      const unfiledPages = pages.filter(p => !p.folderId);
+      if (unfiledPages.length > 0) {
+        html += `
+          <div class="pt-2 border-t border-cottageSlate/10">
+            <div class="text-[10px] uppercase font-bold text-cottageSlate/70 px-2 mb-1">หน้าเอกสารทั่วไป</div>
+            <div class="space-y-0.5">
+              ${unfiledPages.map(p => renderPageItem(p)).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      tree.innerHTML = html;
+    }
+
+    function renderPageItem(p) {
+      const iconDisplay = p.iconType === 'image' 
+        ? `<img src="${p.iconVal}" class="w-3.5 h-3.5 rounded object-cover">` 
+        : `<span>${p.iconVal || '📄'}</span>`;
+
+      return `
+        <div onclick="selectPage('${p.id}')" 
+             class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer text-xs transition-colors ${p.id === currentPageId ? 'bg-cottagePlum/10 font-medium text-cottagePlum' : 'hover:bg-black/5 text-cottageBark'}">
+          ${iconDisplay}
+          <span class="truncate">${p.title || 'ไม่มีชื่อหน้า'}</span>
         </div>
-      `).join('');
+      `;
     }
 
     function selectPage(id) {
@@ -204,115 +411,295 @@
       const page = pages.find(p => p.id === id);
       if (!page) return;
 
-      document.getElementById('pageTitle').value = page.title;
-      document.getElementById('pageContent').innerHTML = page.content;
-      document.getElementById('pageIcon').innerText = page.icon || '📄';
-      document.getElementById('breadcrumbTitle').innerText = page.title || 'ไม่มีชื่อหน้า';
+      // เซ็ตภาพปก
+      document.getElementById('pageCover').style.backgroundImage = `url('${page.coverUrl || DEFAULT_COVER}')`;
 
-      renderPagesList();
+      // เซ็ตไอคอน
+      renderPageIconUI(page);
+
+      document.getElementById('pageTitleInput').value = page.title;
+      document.getElementById('navTitle').innerText = page.title || 'ไม่มีชื่อหน้า';
+
+      renderBlocks();
+      renderSidebarTree();
       if (window.innerWidth < 768) {
         document.getElementById('sidebar').classList.add('-translate-x-full');
       }
     }
 
-    function createNewPage() {
-      const newPage = {
-        id: Date.now().toString(),
-        icon: '🌿',
-        title: '',
-        content: ''
-      };
-      pages.unshift(newPage);
-      saveStorage();
-      renderPagesList();
-      selectPage(newPage.id);
-      document.getElementById('pageTitle').focus();
-    }
-
-    function onTitleChange() {
-      const page = pages.find(p => p.id === currentPageId);
-      if (page) {
-        page.title = document.getElementById('pageTitle').value;
-        document.getElementById('breadcrumbTitle').innerText = page.title || 'ไม่มีชื่อหน้า';
-        saveStorage();
-        renderPagesList();
+    function renderPageIconUI(page) {
+      const box = document.getElementById('pageIconBox');
+      if (page.iconType === 'image') {
+        box.innerHTML = `<img src="${page.iconVal}" class="w-full h-full object-cover">`;
+      } else {
+        box.innerHTML = `<span class="text-3xl">${page.iconVal || '🌸'}</span>`;
       }
     }
 
-    function autoSaveContent() {
+    // --- อัปโหลดรูปภาพและไอคอน (พร้อมระบบบีบอัดภาพไม่ให้หนักเครื่อง) ---
+    function compressAndReadImage(file, maxWidth, maxHeight, quality, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function uploadCoverImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      // ย่อภาพปกความกว้างไม่เกิน 1200px
+      compressAndReadImage(file, 1200, 800, 0.75, function(base64) {
+        const page = pages.find(p => p.id === currentPageId);
+        if (page) {
+          page.coverUrl = base64;
+          savePages();
+          document.getElementById('pageCover').style.backgroundImage = `url('${base64}')`;
+        }
+      });
+    }
+
+    function uploadIconImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      // ย่อภาพไอคอนขนาด 150x150px
+      compressAndReadImage(file, 150, 150, 0.85, function(base64) {
+        const page = pages.find(p => p.id === currentPageId);
+        if (page) {
+          page.iconType = 'image';
+          page.iconVal = base64;
+          savePages();
+          renderPageIconUI(page);
+          renderSidebarTree();
+        }
+      });
+    }
+
+    function cyclePageEmoji() {
+      const emojis = ['🌸', '🌿', '🍄', '🧺', '📖', '☕', '🍰', '🕊️', '🍂', '✨'];
       const page = pages.find(p => p.id === currentPageId);
       if (page) {
-        page.content = document.getElementById('pageContent').innerHTML;
-        saveStorage();
+        page.iconType = 'emoji';
+        const currentIndex = emojis.indexOf(page.iconVal);
+        page.iconVal = emojis[(currentIndex + 1) % emojis.length];
+        savePages();
+        renderPageIconUI(page);
+        renderSidebarTree();
+      }
+    }
+
+    function onPageTitleChange() {
+      const page = pages.find(p => p.id === currentPageId);
+      if (page) {
+        page.title = document.getElementById('pageTitleInput').value;
+        document.getElementById('navTitle').innerText = page.title || 'ไม่มีชื่อหน้า';
+        savePages();
+        renderSidebarTree();
+      }
+    }
+
+    // --- Block Engine ---
+    function renderBlocks() {
+      const page = pages.find(p => p.id === currentPageId);
+      const container = document.getElementById('blocksContainer');
+      if (!page) return;
+
+      container.innerHTML = page.blocks.map((block, index) => {
+        if (block.type === 'h1') {
+          return `<div contenteditable="true" oninput="updateBlock(${index}, this.innerText)" class="notion-block text-2xl font-semibold text-cottagePlum mt-4 border-b border-cottageSlate/10 pb-1" data-placeholder="หัวข้อใหญ่...">${block.content}</div>`;
+        } else if (block.type === 'todo') {
+          return `
+            <div class="flex items-start gap-2.5 my-1">
+              <input type="checkbox" ${block.checked ? 'checked' : ''} onchange="toggleTodo(${index}, this.checked)" class="mt-1 accent-[#663366] w-4 h-4 rounded">
+              <div contenteditable="true" oninput="updateBlock(${index}, this.innerText)" class="notion-block flex-1 text-sm ${block.checked ? 'line-through opacity-50' : ''}" data-placeholder="สิ่งที่ต้องทำ...">${block.content}</div>
+            </div>`;
+        } else if (block.type === 'callout') {
+          return `
+            <div class="bg-cottagePink/10 border-l-4 border-cottagePink p-3.5 rounded-r-xl flex items-start gap-3 my-2">
+              <span class="text-base">💡</span>
+              <div contenteditable="true" oninput="updateBlock(${index}, this.innerText)" class="notion-block flex-1 text-xs md:text-sm leading-relaxed text-cottageBark" data-placeholder="ข้อความเน้นความสำคัญ...">${block.content}</div>
+            </div>`;
+        } else if (block.type === 'toggle') {
+          return `
+            <details class="bg-stone-50 border border-cottageSlate/15 p-3 rounded-xl my-2">
+              <summary contenteditable="true" oninput="updateToggleSummary(${index}, this.innerText)" class="notion-block cursor-pointer font-medium text-xs md:text-sm text-cottagePlum outline-none">${block.summary}</summary>
+              <div contenteditable="true" oninput="updateBlock(${index}, this.innerText)" class="notion-block mt-2 pl-4 text-xs md:text-sm text-cottageBark border-l border-cottagePink/40" data-placeholder="เนื้อหาที่ซ่อนอยู่...">${block.content}</div>
+            </details>`;
+        } else {
+          return `<div contenteditable="true" oninput="updateBlock(${index}, this.innerText)" class="notion-block text-sm leading-relaxed text-cottageBark py-1" data-placeholder="กดพิมพ์ข้อความ...">${block.content}</div>`;
+        }
+      }).join('');
+    }
+
+    function insertBlock(type) {
+      const page = pages.find(p => p.id === currentPageId);
+      if (!page) return;
+      if (type === 'h1') page.blocks.push({ type: 'h1', content: '' });
+      else if (type === 'todo') page.blocks.push({ type: 'todo', content: '', checked: false });
+      else if (type === 'callout') page.blocks.push({ type: 'callout', content: '' });
+      else if (type === 'toggle') page.blocks.push({ type: 'toggle', summary: 'หัวข้อคลิกย่อขยายได้...', content: '' });
+      else page.blocks.push({ type: 'text', content: '' });
+      savePages();
+      renderBlocks();
+    }
+
+    function updateBlock(index, content) {
+      const page = pages.find(p => p.id === currentPageId);
+      if (page && page.blocks[index]) {
+        page.blocks[index].content = content;
+        savePages();
+      }
+    }
+
+    function updateToggleSummary(index, summary) {
+      const page = pages.find(p => p.id === currentPageId);
+      if (page && page.blocks[index]) {
+        page.blocks[index].summary = summary;
+        savePages();
+      }
+    }
+
+    function toggleTodo(index, checked) {
+      const page = pages.find(p => p.id === currentPageId);
+      if (page && page.blocks[index]) {
+        page.blocks[index].checked = checked;
+        savePages();
+        renderBlocks();
       }
     }
 
     function deleteCurrentPage() {
-      if (pages.length <= 1) {
-        alert('ต้องมีเอกสารอย่างน้อย 1 หน้านะคะ');
-        return;
-      }
-      if (confirm('คุณแน่ใจว่าต้องการลบหน้านี้หรือไม่?')) {
+      if (pages.length <= 1) return alert('ต้องเหลืออย่างน้อย 1 หน้านะคะ');
+      if (confirm('ต้องการลบหน้านี้หรือไม่?')) {
         pages = pages.filter(p => p.id !== currentPageId);
-        saveStorage();
+        savePages();
         selectPage(pages[0].id);
       }
     }
 
-    function changePageIcon() {
-      const icons = ['🌸', '🌿', '🍄', '🧺', '📖', '☕', '🕯️', '🕊️', '🍓', '🍰', '✨'];
-      const current = document.getElementById('pageIcon').innerText;
-      const nextIndex = (icons.indexOf(current) + 1) % icons.length;
-      const newIcon = icons[nextIndex];
-
-      const page = pages.find(p => p.id === currentPageId);
-      if (page) {
-        page.icon = newIcon;
-        document.getElementById('pageIcon').innerText = newIcon;
-        saveStorage();
-        renderPagesList();
+    // --- Database Engine (Table & Board) ---
+    function setDbView(view) {
+      currentDbView = view;
+      if (view === 'table') {
+        document.getElementById('dbTableView').classList.remove('hidden');
+        document.getElementById('dbBoardView').classList.add('hidden');
+        document.getElementById('btnViewTable').className = 'px-3 py-1 rounded-lg bg-cottagePlum text-white font-medium';
+        document.getElementById('btnViewBoard').className = 'px-3 py-1 rounded-lg bg-white border border-cottageSlate/20 text-cottageSlate font-medium';
+      } else {
+        document.getElementById('dbTableView').classList.add('hidden');
+        document.getElementById('dbBoardView').classList.remove('hidden');
+        document.getElementById('btnViewBoard').className = 'px-3 py-1 rounded-lg bg-cottagePlum text-white font-medium';
+        document.getElementById('btnViewTable').className = 'px-3 py-1 rounded-lg bg-white border border-cottageSlate/20 text-cottageSlate font-medium';
       }
     }
 
-    // ฟังก์ชันจัดฟอร์แมตเอกสาร
-    function formatDoc(cmd, value = null) {
-      document.execCommand(cmd, false, value);
-      autoSaveContent();
+    function renderDatabase() {
+      const tableBody = document.getElementById('dbTableBody');
+      tableBody.innerHTML = dbItems.map((item, idx) => `
+        <tr class="hover:bg-stone-50">
+          <td class="p-3"><input type="text" value="${item.title}" onchange="updateDbItem(${idx}, 'title', this.value)" class="w-full bg-transparent outline-none font-medium"></td>
+          <td class="p-3">
+            <select onchange="updateDbItem(${idx}, 'status', this.value)" class="bg-stone-100 border border-cottageSlate/20 rounded-lg p-1 text-xs outline-none">
+              <option value="To Do" ${item.status === 'To Do' ? 'selected' : ''}>To Do</option>
+              <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+              <option value="Done" ${item.status === 'Done' ? 'selected' : ''}>Done</option>
+            </select>
+          </td>
+          <td class="p-3"><input type="text" value="${item.priority}" onchange="updateDbItem(${idx}, 'priority', this.value)" class="w-full bg-transparent outline-none"></td>
+          <td class="p-3 text-center"><button onclick="deleteDbItem(${idx})" class="text-red-400 hover:text-red-600">✕</button></td>
+        </tr>
+      `).join('');
+
+      const todos = dbItems.filter(i => i.status === 'To Do');
+      const progs = dbItems.filter(i => i.status === 'In Progress');
+      const dones = dbItems.filter(i => i.status === 'Done');
+
+      document.getElementById('count-todo').innerText = todos.length;
+      document.getElementById('count-progress').innerText = progs.length;
+      document.getElementById('count-done').innerText = dones.length;
+
+      const card = item => `
+        <div class="bg-white p-3 rounded-xl border border-cottageSlate/15 shadow-sm text-xs space-y-2">
+          <div class="font-medium text-cottageBark">${item.title}</div>
+          <div class="flex justify-between items-center text-[10px] text-cottageSlate">
+            <span class="bg-stone-100 px-2 py-0.5 rounded-md">${item.priority}</span>
+            <select onchange="updateDbItemById('${item.id}', 'status', this.value)" class="bg-transparent border border-cottageSlate/20 rounded px-1 outline-none">
+              <option value="To Do" ${item.status === 'To Do' ? 'selected' : ''}>To Do</option>
+              <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+              <option value="Done" ${item.status === 'Done' ? 'selected' : ''}>Done</option>
+            </select>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('board-todo').innerHTML = todos.map(card).join('');
+      document.getElementById('board-progress').innerHTML = progs.map(card).join('');
+      document.getElementById('board-done').innerHTML = dones.map(card).join('');
     }
 
-    function insertTodo() {
-      const checkboxHtml = `<div class="flex items-center gap-2 my-1"><input type="checkbox" class="accent-[#663366] w-4 h-4" onchange="this.nextElementSibling.classList.toggle('line-through')"><span class="outline-none" contenteditable="true">สิ่งที่ต้องทำ...</span></div>`;
-      document.execCommand('insertHTML', false, checkboxHtml);
-      autoSaveContent();
+    function addNewDbRow() {
+      dbItems.push({ id: Date.now().toString(), title: 'รายการงานใหม่', status: 'To Do', priority: 'ทั่วไป 🍃' });
+      saveDb();
+      renderDatabase();
     }
+    function updateDbItem(idx, key, val) { dbItems[idx][key] = val; saveDb(); }
+    function updateDbItemById(id, key, val) { const item = dbItems.find(i => i.id === id); if(item){ item[key] = val; saveDb(); renderDatabase(); } }
+    function deleteDbItem(idx) { dbItems.splice(idx, 1); saveDb(); renderDatabase(); }
 
-    // ระบบสำรองข้อมูล (Export / Import)
+    // --- Backup & Restore ---
     function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pages, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `cottage_backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
+      const fullBackup = { folders, pages, dbItems, date: new Date().toISOString() };
+      const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", str);
+      a.setAttribute("download", `cottage_workspace_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     }
 
-    function importData(event) {
+    function importData(e) {
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function(event) {
         try {
-          const importedPages = JSON.parse(e.target.result);
-          if (Array.isArray(importedPages)) {
-            pages = importedPages;
-            saveStorage();
-            loadPages();
-            alert('กู้คืนข้อมูลสำเร็จเรียบร้อยแล้วค่ะ! 🌸');
+          const data = JSON.parse(event.target.result);
+          if (data.pages) {
+            folders = data.folders || [];
+            pages = data.pages;
+            dbItems = data.dbItems || [];
+            saveFolders();
+            savePages();
+            saveDb();
+            renderSidebarTree();
+            selectPage(pages[0].id);
+            alert('กู้คืนข้อมูลและรูปภาพสำเร็จเรียบร้อยแล้วค่ะ! 🌸');
           }
-        } catch (err) {
+        } catch(err) {
           alert('ไฟล์ไม่ถูกต้องค่ะ');
         }
       };
-      reader.readAsText(event.target.files[0]);
+      reader.readAsText(e.target.files[0]);
     }
   </script>
 </body>
