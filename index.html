@@ -3,22 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cottagecore Notes</title>
+  <title>Cottage Notion</title>
   
-  <!-- ตั้งค่าแอปสำหรับมือถือ -->
+  <!-- ตั้งค่าแอปสำหรับหน้าจอมือถือ (PWA) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="My Cottage">
+  <meta name="apple-mobile-web-app-title" content="CottageNotes">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/869/869869.png">
 
-  <!-- นำเข้า Tailwind CSS และฟอนต์สไตล์วินเทจแบบหนังสือโบราณ -->
+  <!-- Tailwind CSS & Font Mitr (ฟอนต์ไทยน่ารักอ่านสบายตา) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pridi:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <script>
-    // ฝังพาเลตต์สีของคุณเข้าไปใน Tailwind
     tailwind.config = {
       theme: {
         extend: {
@@ -35,151 +34,285 @@
   </script>
 
   <style>
-    body { 
-      font-family: 'Pridi', serif; 
-      background-color: #fafafa;
+    body { font-family: 'Mitr', sans-serif; background-color: #fafafa; }
+    /* สไตล์ Editor แบบ Notion */
+    [contenteditable]:empty:before {
+      content: attr(data-placeholder);
+      color: #5b5a58;
+      opacity: 0.4;
+      cursor: text;
     }
-    /* ให้ความรู้สึกแบบกระดาษรองเขียน */
-    .paper-texture {
-      background-image: radial-gradient(#5b5a58 0.5px, transparent 0.5px);
-      background-size: 24px 24px;
-      opacity: 0.04;
+    .notion-editor:focus { outline: none; }
+    .notion-editor h1 { font-size: 1.8rem; font-weight: 600; color: #663366; margin: 1.2rem 0 0.5rem; }
+    .notion-editor h2 { font-size: 1.4rem; font-weight: 500; color: #1c0e07; margin: 1rem 0 0.4rem; }
+    .notion-editor p { margin: 0.4rem 0; line-height: 1.7; color: #1c0e07; }
+    .notion-editor ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+    .notion-editor blockquote { 
+      border-left: 3px solid #ef9dc1; 
+      padding-left: 1rem; 
+      margin: 0.8rem 0; 
+      color: #5b5a58; 
+      font-style: italic; 
     }
   </style>
 </head>
-<body class="min-h-screen text-cottageBark relative pb-16">
-  <!-- พื้นผิวลายจุดจางๆ เพิ่มความวินเทจ -->
-  <div class="fixed inset-0 paper-texture pointer-events-none"></div>
+<body class="h-screen flex overflow-hidden text-cottageBark select-none">
 
-  <!-- ส่วนหัว (Header) -->
-  <header class="max-w-md mx-auto pt-10 pb-6 px-6 text-center">
-    <div class="inline-block text-2xl mb-1">🌿 📜 ☕</div>
-    <h1 class="text-3xl font-semibold text-cottagePlum tracking-wide">ไดอารี่ในบ้านสวน</h1>
-    <p class="text-xs text-cottageSlate mt-1 font-light tracking-wider">บันทึกเรื่องราวเล็กๆ ท่ามกลางธรรมชาติ</p>
-    <div class="w-16 h-0.5 bg-cottagePink mx-auto mt-4 rounded-full"></div>
-  </header>
+  <!-- แถบด้านข้าง (Sidebar) -->
+  <aside id="sidebar" class="w-72 bg-white/70 backdrop-blur-md border-r border-cottageSlate/15 flex flex-col transition-all duration-300 z-30 absolute md:relative h-full -translate-x-full md:translate-x-0">
+    <!-- ส่วนหัว Sidebar -->
+    <div class="p-4 border-b border-cottageSlate/10 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🧺</span>
+        <span class="font-semibold text-cottagePlum text-sm tracking-wide">Cottage Workspace</span>
+      </div>
+      <button onclick="toggleSidebar()" class="md:hidden text-cottageSlate text-xs p-1">✕</button>
+    </div>
 
-  <!-- เนื้อหาหลัก -->
-  <main class="max-w-md mx-auto px-6 relative z-10">
-    
-    <!-- กล่องเขียนโน้ตใหม่ (สไตล์ซองจดหมาย/การ์ดวินเทจ) -->
-    <div class="bg-white/90 p-6 rounded-2xl shadow-sm border border-cottageSlate/20 mb-8 backdrop-blur-sm">
-      <input id="noteTitle" type="text" placeholder="ชื่อบันทึกของวันนี้..." 
-             class="w-full text-base font-medium outline-none bg-transparent placeholder-cottageSlate/50 mb-3 text-cottageBark border-b border-cottageSlate/10 pb-1">
-      
-      <textarea id="noteContent" rows="3" placeholder="เขียนข้อความอบอุ่นของคุณที่นี่..." 
-                class="w-full text-sm outline-none bg-transparent placeholder-cottageSlate/50 resize-none leading-relaxed text-cottageBark"></textarea>
-      
-      <div class="flex justify-between items-center mt-4 pt-3 border-t border-cottageSlate/10">
-        <!-- ปุ่มเลือกสีการ์ด (โทนละมุน) -->
-        <div class="flex gap-2.5 items-center" id="colorPicker">
-          <button onclick="selectColor('bg-[#ffffff] border-cottageSlate/20')" title="กระดาษขาว" class="w-5 h-5 rounded-full bg-[#ffffff] border border-cottageSlate/40 hover:scale-110 transition-transform"></button>
-          <button onclick="selectColor('bg-[#fbf0f4] border-cottagePink/40')" title="กลีบกุหลาบ" class="w-5 h-5 rounded-full bg-[#ef9dc1]/30 border border-cottagePink hover:scale-110 transition-transform"></button>
-          <button onclick="selectColor('bg-[#f3ebf3] border-cottagePlum/30')" title="ดอกลาเวนเดอร์" class="w-5 h-5 rounded-full bg-[#663366]/20 border border-cottagePlum hover:scale-110 transition-transform"></button>
-          <button onclick="selectColor('bg-[#f4f3f0] border-cottageSlate/30')" title="เปลือกไม้แห้ง" class="w-5 h-5 rounded-full bg-[#5b5a58]/20 border border-cottageSlate hover:scale-110 transition-transform"></button>
-        </div>
+    <!-- ปุ่มสร้างหน้าใหม่ -->
+    <div class="p-3">
+      <button onclick="createNewPage()" class="w-full bg-cottagePink/20 hover:bg-cottagePink/30 text-cottagePlum font-medium text-xs py-2.5 px-4 rounded-xl flex items-center gap-2 transition-all">
+        <span class="text-base font-bold text-cottagePlum">+</span> สร้างหน้าเอกสารใหม่
+      </button>
+    </div>
 
-        <!-- ปุ่มบันทึก -->
-        <button onclick="addNote()" class="bg-cottagePlum hover:bg-cottagePlum/90 text-cottagePaper text-xs px-5 py-2 rounded-full font-medium shadow-sm transition-all active:scale-95 flex items-center gap-1">
-          <span>บันทึก</span> 🌸
+    <!-- รายชื่อหน้าเอกสาร (Page List) -->
+    <div class="flex-1 overflow-y-auto px-3 space-y-1" id="pagesList">
+      <!-- หน้าต่างๆ จะมาแสดงตรงนี้ -->
+    </div>
+
+    <!-- เมนูสำรองข้อมูลด้านล่าง (Backup & Restore) -->
+    <div class="p-3 border-t border-cottageSlate/10 text-xs text-cottageSlate bg-stone-50/50 space-y-2">
+      <div class="font-medium text-cottageBark/70 mb-1 flex items-center gap-1">💾 สำรองข้อมูล (Pro)</div>
+      <div class="flex gap-2">
+        <button onclick="exportData()" class="flex-1 bg-white border border-cottageSlate/20 hover:border-cottagePlum p-1.5 rounded-lg text-center transition-colors">
+          ดาวน์โหลดข้อมูล
         </button>
+        <label class="flex-1 bg-white border border-cottageSlate/20 hover:border-cottagePlum p-1.5 rounded-lg text-center cursor-pointer transition-colors">
+          กู้คืนข้อมูล
+          <input type="file" id="importInput" onchange="importData(event)" class="hidden" accept=".json">
+        </label>
       </div>
     </div>
+  </aside>
 
-    <!-- แถบหัวข้อรายการโน้ต -->
-    <div class="flex items-center justify-between mb-4 px-1">
-      <span class="text-xs uppercase tracking-widest text-cottageSlate font-semibold">แผ่นบันทึกความทรงจำ</span>
-      <span id="noteCount" class="text-xs text-cottagePink font-medium"></span>
-    </div>
+  <!-- พื้นที่ทำงานหลัก (Workspace Canvas) -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden bg-cottagePaper relative">
+    
+    <!-- แถบเครื่องมือบนสุด (Top Navigation Bar) -->
+    <header class="h-12 border-b border-cottageSlate/10 flex items-center justify-between px-4 bg-white/40 backdrop-blur-sm z-10">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-black/5 text-cottageSlate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span id="breadcrumbTitle" class="text-xs text-cottageSlate font-light truncate max-w-[200px]">ยินดีต้อนรับ</span>
+      </div>
 
-    <!-- รายการโน้ตทั้งหมด -->
-    <div id="notesList" class="space-y-4">
-      <!-- โน้ตจะถูกดึงมาแสดงที่นี่ -->
+      <!-- แถบฟอร์แมตตัวหนังสือ (Toolbar สไตล์ Notion) -->
+      <div class="flex items-center gap-1 text-xs text-cottageBark">
+        <button onclick="formatDoc('formatBlock', '<h1>')" class="px-2 py-1 hover:bg-cottagePink/20 rounded font-bold" title="หัวข้อใหญ่">H1</button>
+        <button onclick="formatDoc('formatBlock', '<h2>')" class="px-2 py-1 hover:bg-cottagePink/20 rounded font-bold" title="หัวข้อย่อย">H2</button>
+        <button onclick="formatDoc('bold')" class="px-2 py-1 hover:bg-cottagePink/20 rounded font-bold" title="ตัวหนา">B</button>
+        <button onclick="formatDoc('insertUnorderedList')" class="px-2 py-1 hover:bg-cottagePink/20 rounded" title="รายการจุด">• รายการ</button>
+        <button onclick="insertTodo()" class="px-2 py-1 hover:bg-cottagePink/20 rounded" title="To-do list">☑ สิ่งที่ต้องทำ</button>
+        <button onclick="deleteCurrentPage()" class="px-2 py-1 text-red-500 hover:bg-red-50 rounded ml-2" title="ลบหน้านี้">ลบ</button>
+      </div>
+    </header>
+
+    <!-- พื้นที่เขียนหน้ากระดาษ (Infinite Document) -->
+    <div class="flex-1 overflow-y-auto select-text" id="documentArea">
+      <!-- ภาพปก Cottagecore Banner -->
+      <div class="h-44 w-full bg-cover bg-center relative" style="background-image: url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1200&auto=format&fit=crop');">
+        <div class="absolute inset-0 bg-cottagePlum/10 backdrop-blur-[1px]"></div>
+      </div>
+
+      <!-- เนื้อหาภายในหน้า -->
+      <div class="max-w-3xl mx-auto px-8 -mt-8 relative pb-32">
+        <!-- ไอคอนประจำหน้าเอกสาร -->
+        <button onclick="changePageIcon()" id="pageIcon" class="text-5xl bg-white p-2 rounded-2xl shadow-sm border border-cottageSlate/10 hover:scale-105 transition-transform mb-4 inline-block">
+          🌸
+        </button>
+
+        <!-- ชื่อหน้าเอกสาร (Title) -->
+        <input id="pageTitle" type="text" placeholder="ไม่มีชื่อหน้า..." 
+               class="w-full text-3xl md:text-4xl font-semibold bg-transparent outline-none text-cottageBark placeholder-cottageSlate/30 mb-6"
+               oninput="onTitleChange()">
+
+        <!-- ตัว Editor เนื้อหา (ยาวได้ไม่จำกัด) -->
+        <div id="pageContent" contenteditable="true" 
+             data-placeholder="กดพิมพ์ข้อความ หรือเริ่มจดความคิดของคุณตรงนี้..." 
+             class="notion-editor min-h-[500px] outline-none text-sm md:text-base leading-relaxed"
+             oninput="autoSaveContent()">
+        </div>
+      </div>
     </div>
   </main>
 
-  <!-- JavaScript -->
+  <!-- JavaScript ระบบ Workspace -->
   <script>
-    let currentColor = 'bg-[#ffffff] border-cottageSlate/20';
-
-    function selectColor(colorClass) {
-      currentColor = colorClass;
-    }
+    let pages = [];
+    let currentPageId = null;
 
     window.onload = function() {
-      renderNotes();
+      loadPages();
     };
 
-    function getNotes() {
-      return JSON.parse(localStorage.getItem('cottagecore_notes') || '[]');
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
     }
 
-    function saveNotes(notes) {
-      localStorage.setItem('cottagecore_notes', JSON.stringify(notes));
-      renderNotes();
+    function getStorage() {
+      return JSON.parse(localStorage.getItem('cottage_notion_pages') || '[]');
     }
 
-    function addNote() {
-      const title = document.getElementById('noteTitle').value.trim();
-      const content = document.getElementById('noteContent').value.trim();
-      
-      if (!title && !content) return;
-
-      const notes = getNotes();
-      notes.unshift({
-        id: Date.now(),
-        title: title || 'ความทรงจำที่ไม่มีชื่อ',
-        content: content,
-        color: currentColor,
-        date: new Date().toLocaleDateString('th-TH', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        })
-      });
-
-      saveNotes(notes);
-      
-      document.getElementById('noteTitle').value = '';
-      document.getElementById('noteContent').value = '';
+    function saveStorage() {
+      localStorage.setItem('cottage_notion_pages', JSON.stringify(pages));
     }
 
-    function deleteNote(id) {
-      let notes = getNotes();
-      notes = notes.filter(n => n.id !== id);
-      saveNotes(notes);
-    }
-
-    function renderNotes() {
-      const list = document.getElementById('notesList');
-      const notes = getNotes();
-      
-      document.getElementById('noteCount').innerText = `${notes.length} รายการ`;
-
-      if (notes.length === 0) {
-        list.innerHTML = `
-          <div class="text-center py-16 text-cottageSlate border border-dashed border-cottageSlate/30 rounded-2xl p-6">
-            <p class="text-2xl mb-2">🧺</p>
-            <p class="text-sm font-light">ยังไม่มีเรื่องราวถูกบันทึกไว้เลย...</p>
-            <p class="text-xs text-cottagePink mt-1">หยิบปากกาขนนกแล้วเริ่มเขียนกันเถอะ</p>
-          </div>
-        `;
-        return;
+    function loadPages() {
+      pages = getStorage();
+      if (pages.length === 0) {
+        // สร้างหน้าแรกเป็นตัวอย่างต้อนรับ
+        const welcomePage = {
+          id: Date.now().toString(),
+          icon: '📖',
+          title: 'ยินดีต้อนรับสู่ Cottage Workspace',
+          content: '<p>นี่คือพื้นที่บันทึกส่วนตัวของคุณสไตล์ Notion</p><ul><li>กดที่ปุ่ม <strong>+ สร้างหน้าเอกสารใหม่</strong> ด้านซ้าย</li><li>พิมพ์เนื้อหาได้ยาวไร้ขีดจำกัด</li><li>จัดตัวหนา หัวข้อ H1 H2 หรือเช็คลิสต์ได้อิสระ</li></ul>'
+        };
+        pages.push(welcomePage);
+        saveStorage();
       }
+      renderPagesList();
+      selectPage(pages[0].id);
+    }
 
-      list.innerHTML = notes.map(note => `
-        <div class="${note.color} p-5 rounded-2xl shadow-sm border relative group transition-all duration-200 hover:shadow-md">
-          <button onclick="deleteNote(${note.id})" class="absolute top-4 right-4 text-cottageSlate/40 hover:text-cottagePink transition-colors text-xs font-semibold px-2 py-1">
-            ✕ ลบ
-          </button>
-          <h3 class="font-medium text-cottageBark pr-10 mb-2 text-base">${note.title}</h3>
-          <p class="text-cottageSlate text-sm whitespace-pre-line leading-relaxed font-light">${note.content}</p>
-          <div class="mt-4 pt-3 border-t border-black/5 text-[11px] text-cottageSlate/70 flex justify-between items-center">
-            <span>📅 ${note.date}</span>
-            <span class="text-cottagePink text-xs">❦</span>
+    function renderPagesList() {
+      const list = document.getElementById('pagesList');
+      list.innerHTML = pages.map(p => `
+        <div onclick="selectPage('${p.id}')" 
+             class="group flex items-center justify-between p-2 rounded-xl cursor-pointer text-xs transition-colors ${p.id === currentPageId ? 'bg-cottagePlum/10 font-medium text-cottagePlum' : 'hover:bg-black/5 text-cottageBark'}">
+          <div class="flex items-center gap-2 truncate">
+            <span>${p.icon || '📄'}</span>
+            <span class="truncate">${p.title || 'ไม่มีชื่อหน้า'}</span>
           </div>
         </div>
       `).join('');
+    }
+
+    function selectPage(id) {
+      currentPageId = id;
+      const page = pages.find(p => p.id === id);
+      if (!page) return;
+
+      document.getElementById('pageTitle').value = page.title;
+      document.getElementById('pageContent').innerHTML = page.content;
+      document.getElementById('pageIcon').innerText = page.icon || '📄';
+      document.getElementById('breadcrumbTitle').innerText = page.title || 'ไม่มีชื่อหน้า';
+
+      renderPagesList();
+      if (window.innerWidth < 768) {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+      }
+    }
+
+    function createNewPage() {
+      const newPage = {
+        id: Date.now().toString(),
+        icon: '🌿',
+        title: '',
+        content: ''
+      };
+      pages.unshift(newPage);
+      saveStorage();
+      renderPagesList();
+      selectPage(newPage.id);
+      document.getElementById('pageTitle').focus();
+    }
+
+    function onTitleChange() {
+      const page = pages.find(p => p.id === currentPageId);
+      if (page) {
+        page.title = document.getElementById('pageTitle').value;
+        document.getElementById('breadcrumbTitle').innerText = page.title || 'ไม่มีชื่อหน้า';
+        saveStorage();
+        renderPagesList();
+      }
+    }
+
+    function autoSaveContent() {
+      const page = pages.find(p => p.id === currentPageId);
+      if (page) {
+        page.content = document.getElementById('pageContent').innerHTML;
+        saveStorage();
+      }
+    }
+
+    function deleteCurrentPage() {
+      if (pages.length <= 1) {
+        alert('ต้องมีเอกสารอย่างน้อย 1 หน้านะคะ');
+        return;
+      }
+      if (confirm('คุณแน่ใจว่าต้องการลบหน้านี้หรือไม่?')) {
+        pages = pages.filter(p => p.id !== currentPageId);
+        saveStorage();
+        selectPage(pages[0].id);
+      }
+    }
+
+    function changePageIcon() {
+      const icons = ['🌸', '🌿', '🍄', '🧺', '📖', '☕', '🕯️', '🕊️', '🍓', '🍰', '✨'];
+      const current = document.getElementById('pageIcon').innerText;
+      const nextIndex = (icons.indexOf(current) + 1) % icons.length;
+      const newIcon = icons[nextIndex];
+
+      const page = pages.find(p => p.id === currentPageId);
+      if (page) {
+        page.icon = newIcon;
+        document.getElementById('pageIcon').innerText = newIcon;
+        saveStorage();
+        renderPagesList();
+      }
+    }
+
+    // ฟังก์ชันจัดฟอร์แมตเอกสาร
+    function formatDoc(cmd, value = null) {
+      document.execCommand(cmd, false, value);
+      autoSaveContent();
+    }
+
+    function insertTodo() {
+      const checkboxHtml = `<div class="flex items-center gap-2 my-1"><input type="checkbox" class="accent-[#663366] w-4 h-4" onchange="this.nextElementSibling.classList.toggle('line-through')"><span class="outline-none" contenteditable="true">สิ่งที่ต้องทำ...</span></div>`;
+      document.execCommand('insertHTML', false, checkboxHtml);
+      autoSaveContent();
+    }
+
+    // ระบบสำรองข้อมูล (Export / Import)
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pages, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `cottage_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedPages = JSON.parse(e.target.result);
+          if (Array.isArray(importedPages)) {
+            pages = importedPages;
+            saveStorage();
+            loadPages();
+            alert('กู้คืนข้อมูลสำเร็จเรียบร้อยแล้วค่ะ! 🌸');
+          }
+        } catch (err) {
+          alert('ไฟล์ไม่ถูกต้องค่ะ');
+        }
+      };
+      reader.readAsText(event.target.files[0]);
     }
   </script>
 </body>
